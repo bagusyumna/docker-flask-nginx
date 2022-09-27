@@ -1,0 +1,46 @@
+version: '3.7'
+
+services:
+
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "8080:8080"
+      - "8181:8181"
+    networks:
+      - network-api-service
+    depends_on:
+      - service-client
+      - service-invitation
+
+  service-client:
+    build: ./service-client
+    container_name: service-client
+    restart: always
+    environment:
+      - APP_NAME=SERVICE-CLIENT
+      - DB_USERNAME=example
+    command: gunicorn --bind 0.0.0.0:8000 --workers 4 wsgi:app
+    networks:
+      network-api-service:
+        aliases:
+          - service-client-app
+
+  service-invitation:
+    build: ./service-invitation
+    container_name: service-invitation
+    restart: always
+    environment:
+      - APP_NAME=SERVICE-INVITATION
+      - DB_USERNAME=example
+    command: gunicorn --bind 0.0.0.0:8000 --workers 4 wsgi:app
+    networks:
+      network-api-service:
+        aliases:
+          - service-invitation-app
+
+networks:
+  network-api-service:
